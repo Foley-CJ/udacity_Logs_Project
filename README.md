@@ -1,34 +1,48 @@
-# udacity_Logs_Project
+# Logs Analysis [Udacity Full Stack Nanodegree ]
 
 
-This project generates a report on the performance of a news website.  The metrics are derived from data contained within a postgres database. The code is written using python 3 along with a number of packages included in the requirements.txt *not all packages will be used in this version*  The following view is generated prior to running the metric scripts.  It is generated on the fly to address concerns around changing path logics.
+### This project generates a report on the performance of a news website.  The metrics are derived from data contained within a postgres database. The code is written using python 3 along with the psycopg2 python package.  
+
+### Report Questions
+
+What are the three most popular articles?
+
+Who are the most popular authors, how many views have they had?
+
+When did the site generate an excessive amount of errors (>1%)?
 
 
-    create view allNewsDataDN as 
-        select
-        lg.path,
-        lg.title,
-        lg.status,
-        cast(lg.time as date) as date,
-        athr.name
-        from
-           (select
-               path,
-               case when path in ('/article/media-obsessed-with-bears') then 'Media obsessed with bears' 
-          when path in ('/article/so-many-bears') then 'There are a lot of bears' 
-          when path in ('/article/balloon-goons-doomed') then 'Balloon goons doomed' 
-          when path in ('/article/trouble-for-troubled') then 'Trouble for troubled troublemakers' 
-          when path in ('/article/goats-eat-googles') then 'Goats eat Google''s lawn' 
-          when path in ('/article/bad-things-gone') then 'Bad things gone, say good people' 
-          when path in ('/article/bears-love-berries') then 'Bears love berries, alleges bear' 
-          when path in ('/article/candidate-is-jerk') then 'Candidate is jerk, alleges rival' 
-                    else path end as title,
-                status,
-               time
-           from log) lg
+### Requirements 
 
-        left join articles as artcl
-        on artcl.title = lg.title
+Language: Python3
 
-        left join authors as athr
-        on athr.id = artcl.author;
+Packages: Psycopg2 
+
+Virtual Machine: https://d17h27t6h515a5.cloudfront.net/topher/2017/August/59822701_fsnd-virtual-machine/fsnd-virtual-machine.zip
+
+Database:  News
+    - The data for the News database can be loaded from a sql script contained in the following zip:
+       https://d17h27t6h515a5.cloudfront.net/topher/2016/August/57b5f748_newsdata/newsdata.zip
+    - Command to load data after unzipping: psql -d news -f newsdata.sql.
+
+### View Generation Script
+
+In order to efficiently calculate these report metrics, a view was created ontop of the base data.  This view is generated on the fly within the report_generation.py file and is not needed to be created ahead of time, however is outlined below for your convience.
+
+    create or replace view allNewsDataDN as
+    select
+    lg.path,
+    artcl.title,
+    lg.status,
+    cast(lg.time as date) as date,
+    athr.name
+    from log as lg
+
+    left join articles as artcl
+    on artcl.slug = substr(lg.path,10,length(lg.path))
+
+    left join authors as athr
+    on athr.id = artcl.author;
+    
+
+ 
